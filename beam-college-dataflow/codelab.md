@@ -216,7 +216,8 @@ Duration: 0:10:00
 To transform many input formats to the Beam Row and from Beam Row into destination format, presented
 pipeline implements IO transforms. Let's focus on GcsIO that works with Google Cloud Storage.
 
-In the `v2/protegrity-data-tokenization/src/main/java/com/google/cloud/teleport/v2/transforms/io/GcsIO.java` you may see `FORMAT` enum, that covers all supported formats.
+In the 
+`/transforms/io/GcsIO.java` you may see `FORMAT` enum, that covers all supported formats.
 ```java
 public enum FORMAT {
     JSON,
@@ -393,7 +394,7 @@ section.
 To skip the tokenization step for testing purposes you need to replace the tokenization call in 
 `ProtegrityDataProtectors`
 
-1. Go to `v2/protegrity-data-tokenization/src/main/java/com/google/cloud/teleport/v2/transforms/ProtegrityDataProtectors.java`
+1. Go to `ProtegrityDataProtectors.java`
 2. Find processBufferedRows method
 3. Replace
 ```java
@@ -476,8 +477,12 @@ For the building Dataflow Template, you should create JSON file with Template me
 
 #### Add PARQUET to supported formats in Metadata file
 
-In the metadata file, located: `v2/protegrity-data-tokenization/src/main/resources/protegrity_data_tokenization_metadata.json` 
-you may see following parameters:
+In the metadata file, located: 
+
+```
+v2/protegrity-data-tokenization/src/main/resources/protegrity_data_tokenization_metadata.json
+``` 
+You may see following parameters:
 * inputGcsFileFormat
 * outputGcsFileFormat
 
@@ -543,7 +548,7 @@ gcloud dataflow flex-template build ${TEMPLATE_PATH} \
 * `image-gcr-path` path in GCR, should be in format  `gcr.io/${PROJECT}/${IMAGE_NAME}`
 * `sdk-language` might be Java or Python
 * `flex-template-base-image` You must use a Google-provided [base image](https://docs.docker.com/glossary/#base_image) to package your containers using Docker. Choose the most recent version name from the [Flex Templates base images reference](https://cloud.google.com/dataflow/docs/reference/flex-templates-base-images). Do not select *latest*.
-* `metadata-file` path to metadata file in this case: ``v2/protegrity-data-tokenization/src/main/resources/protegrity_data_tokenization_metadata.json``
+* `metadata-file` path to metadata file in this case: `v2/protegrity-data-tokenization/src/main/resources/protegrity_data_tokenization_metadata.json`
 * `jar` path to **UBER JAR** 
 * `FLEX_TEMPLATE_JAVA_MAIN_CLASS` path to the main class. In this case: `com.google.cloud.teleport.v2.templates.ProtegrityDataTokenization`
 
@@ -566,104 +571,46 @@ you need to specify few of them.
 - **outputGcsDirectory**: GCS bucket folder to write data to
 - **outputGcsFileFormat**: File format of output files. Supported formats: JSON, CSV, Avro and **PARQUET**
 
-
-<details>
-  <summary>Full list of the parameters</summary>
-  
-- Data schema
-    - **dataSchemaGcsPath**: Path to data schema file located on GCS. BigQuery compatible JSON format data schema required
-- An input source from the supported options:
-    - Google Cloud Storage
-        - **inputGcsFilePattern**: GCS file pattern for files in the source bucket
-        - **inputGcsFileFormat**: File format of the input files. Supported formats: JSON, CSV, Avro and **PARQUET**
-        - CSV format parameters:
-            - **csvContainsHeaders**: `true` if CSV file(s) in the input bucket contain headers, and `false` otherwise
-            - **csvDelimiter**: Delimiting character in CSV. Default: delimiter provided in csvFormat
-            - **csvFormat**: CSV format according to Apache Commons CSV format. Default is:
-              [Apache Commons CSV default](https://static.javadoc.io/org.apache.commons/commons-csv/1.7/org/apache/commons/csv/CSVFormat.html#DEFAULT)
-              . Must match format names exactly found
-              at: https://static.javadoc.io/org.apache.commons/commons-csv/1.7/org/apache/commons/csv/CSVFormat.Predefined.html
-    - Google Pub/Sub (Avro not supported)
-        - **pubsubTopic**: Cloud Pub/Sub input topic to read data from, in the format of '
-          projects/yourproject/topics/yourtopic'
-- An output sink from the supported options:
-    - Google Cloud Storage
-        - **outputGcsDirectory**: GCS bucket folder to write data to
-        - **outputGcsFileFormat**: File format of output files. Supported formats: JSON, CSV, Avro
-        - **windowDuration**: The window duration in which data will be written. Should be specified
-          only for 'Pub/Sub -> GCS' case. Defaults to 30s.
-
-          Supported format:
-            - Ns (for seconds, example: 5s),
-            - Nm (for minutes, example: 12m),
-            - Nh (for hours, example: 2h).
-        - Google Cloud BigQuery
-            - **bigQueryTableName**: Cloud BigQuery table name to write into
-    - Cloud Bigtable
-        - **bigTableProjectId**: Project ID containing Cloud Bigtable instance to write into
-        - **bigTableInstanceId**: Cloud BigTable Instance ID of the Bigtable instance to write into
-        - **bigTableTableId**: ID of the Cloud Bigtable table to write into
-        - **bigTableKeyColumnName**: Column name to use as a key in Cloud Bigtable
-        - **bigTableColumnFamilyName**: Column family name to use in Cloud Bigtable
-- DSG parameters
-    - **dsgUri**: URI for the DSG API calls
-    - **batchSize**: Size of the data batch to send to DSG per request
-    - **payloadConfigGcsPath**: GCS path to the payload configuration file with an array of fields
-      to extract for tokenization
-
-The template allows user to supply the following optional parameter:
-
-- **nonTokenizedDeadLetterGcsPath**: GCS folder where failed to tokenize data will be stored
-</details>
-
-
 A Dataflow job can be created and executed from this template in 3 ways:
 
 1. Using [Dataflow Google Cloud Console](https://console.cloud.google.com/dataflow/jobs)
-
-// TODO add screenshots from console 
-
 2. Using `gcloud` CLI tool
-    ```bash
-    gcloud dataflow flex-template run "protegrity-data-tokenization-`date +%Y%m%d-%H%M%S`" \
-        --template-file-gcs-location "${TEMPLATE_PATH}" \
-        --parameters <parameter>="<value>" \
-        --parameters <parameter>="<value>" \
-        ...
-        --parameters <parameter>="<value>" \
-        --region "${REGION}"
-    ```
+
+```bash
+gcloud dataflow flex-template run "protegrity-data-tokenization-`date +%Y%m%d-%H%M%S`" \
+    --template-file-gcs-location "${TEMPLATE_PATH}" \
+    --parameters <parameter>="<value>" \
+    --parameters <parameter>="<value>" \
+    ...
+    --parameters <parameter>="<value>" \
+    --region "${REGION}"
+```
 3. With a REST API request
-    ```
-    API_ROOT_URL="https://dataflow.googleapis.com"
-    TEMPLATES_LAUNCH_API="${API_ROOT_URL}/v1b3/projects/${PROJECT}/locations/${REGION}/flexTemplates:launch"
-    JOB_NAME="protegrity-data-tokenization-`date +%Y%m%d-%H%M%S-%N`"
-    
-    time curl -X POST -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-        -d '
-         {
-             "launch_parameter": {
-                 "jobName": "'$JOB_NAME'",
-                 "containerSpecGcsPath": "'$TEMPLATE_PATH'",
-                 "parameters": {
-                     "<parameter>": "<value>",
-                     "<parameter>": "<value>",
-                     ...
-                     "<parameter>": "<value>"
-                 }
+
+```bash
+API_ROOT_URL="https://dataflow.googleapis.com"
+TEMPLATES_LAUNCH_API="${API_ROOT_URL}/v1b3/projects/${PROJECT}/locations/${REGION}/flexTemplates:launch"
+JOB_NAME="protegrity-data-tokenization-`date +%Y%m%d-%H%M%S-%N`"
+
+time curl -X POST -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+    -d '
+     {
+         "launch_parameter": {
+             "jobName": "'$JOB_NAME'",
+             "containerSpecGcsPath": "'$TEMPLATE_PATH'",
+             "parameters": {
+                 "<parameter>": "<value>",
+                 "<parameter>": "<value>",
+                 ...
+                 "<parameter>": "<value>"
              }
          }
-        '
-        "${TEMPLATES_LAUNCH_API}"
-    ```
+     }
+    '
+    "${TEMPLATES_LAUNCH_API}"
+```
 
-<!-- ------------------------ -->
-## Contribute to DataflowTemplates
-Duration: 0:05:00
-
-pass
-<!-- ------------------------ -->
 ## Finish
 Duration: 0:05:00
 
