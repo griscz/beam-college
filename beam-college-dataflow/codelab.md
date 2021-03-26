@@ -618,7 +618,7 @@ In this codelab you added a new input source and output sink for parquet files t
 * How to organize Dataflow template code
 * How to use Apache Beam Schema API
 * How to work with Apache Beam ParquetIO
-* How to wotk with AvroUtils
+* How to work with AvroUtils
 * How to build Dataflow Flex template
 * How to run Dataflow template in Google Cloud
 
