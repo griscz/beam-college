@@ -606,18 +606,20 @@ You can find more information in Google [documentation](https://cloud.google.com
 ## Congratulations!
 Duration: 0:05:00
 
-In this codelab you added a new input source to an Apache Beam pipeline using Beam Schema API, createed Dataflow template from the Apache Beam pipeline and ran the Dataflow template in Google Cloud. This colab demonstrated how to work with Beam Schema API and how Beam Schema API helps to support multiple data formats in your pipeline.
+In this codelab you added a new input source and output sink for parquet files to an Apache Beam pipeline using Beam Schema API, created a Dataflow template from the Apache Beam pipeline, and ran the Dataflow.
 
 #### What you've built
 
-* New transformation for .parquet format into the Beam Row abstraction
+* New transformation for .parquet format into the Beam Row
 * New transformation from Beam Row into .parquet format
 * Dataflow Flex template
 
 #### What you'll learned
+* How to organize Dataflow template code
 * How to use Apache Beam Schema API
 * How to work with Apache Beam ParquetIO
-* How to build Dataflow Flex template from pipeline
+* How to wotk with AvroUtils
+* How to build Dataflow Flex template
 * How to run Dataflow template in Google Cloud
 
 #### Learn More
