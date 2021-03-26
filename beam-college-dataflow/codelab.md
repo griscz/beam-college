@@ -1,40 +1,39 @@
 author: Ilya Kozyrev
-summary: In this codelab you'll learn how to add new input source to the Dataflow template using Beam Schema API. And how to build Beam pipeline into Dataflow Template and run it in GCP
+summary: In this codelab you will add a new input source to an Apache Beam pipeline using Beam Schema API, create Dataflow template from the Apache Beam pipeline and run the Dataflow tempalte in Google Cloud.
 id: data-flow-templates-new-source-schema-api
-categories: Dataflow,Beam,GCP,Dataflow Template
+categories: Dataflow,Apache Beam, GCP,Dataflow template,Dataflow Flex template
 environments: Web
 status: Draft
 feedback link:https://github.com/ilya-kozyrev/codelabs
 
 
-# Add new input source to the Dataflow Template using Beam Schema API
+# Add new input source to the Dataflow template using Apache Beam Schema API
 <!-- ------------------------ -->
 ## Introduction
 Duration: 0:05:00
 
 #### Goals
 
-In this codelab you'll add new input source to existing pipeline, build pipeline to the Dataflow template and run it on GCP.
-Through this codelab, you'll understand how to work with Beam Schema API and how this API help you to support multiple formats in your pipeline.
+In this codelab you will add a new input source to an Apache Beam pipeline using Beam Schema API, create Dataflow template from the Apache Beam pipeline and run the Dataflow template in Google Cloud. This colab demonstrates how to work with Beam Schema API and how Beam Schema API helps to support multiple data formats in your pipeline.
 
 #### What you'll build
 
 * New transformation for .parquet format into the Beam Row abstraction
 * New transformation from Beam Row into .parquet format
-* Read and Write methods for Beam using those transformations
+* Dataflow Flex template
 
 #### What you'll learn
-* How to use Beam Schema Api
-* How to work with ParquetIO
-* How to build pipeline into Dataflow Template
-* How to run Dataflow Template in GCP
+* How to use Apache Beam Schema API
+* How to work with Apache Beam ParquetIO
+* How to build Dataflow Flex template from pipeline
+* How to run Dataflow template in Google Cloud
 
 #### What you'll need
 * A computer with a modern web browser installed (Chrome is recommended)
 * Your favourite code editor or IDE
-* A Google account
+* A Google Cloud project
 
-Next step: Environment Setup
+Next step: environment setup
 
 <!-- ------------------------ -->
 ## Environment setup
@@ -51,13 +50,13 @@ In order to work with Beam Java SDK you need *Java 1.8*, *mvn* (the java command
 
 
 #### Install Git
-The instructions below are what worked for Mac, but you can also find instructions [here](https://git-scm.com/download/)
+Instructions below are provided for macOS, and you can find instructions for other environments [here](https://git-scm.com/download/)
 
 ```bash
 $ brew install git
 ```
 
-#### Clone the template repository
+#### Clone the colab template repository
 ```bash
 $ git clone https://github.com/akvelon/DataflowTemplates.git
 ```
@@ -71,33 +70,30 @@ $ git checkout ProtegrityIntegrationTemplate
 ## Project overview
 Duration: 0:05:00
 
-In your cloned  repository folder you might see `src` and `v2` folders. src and v2 folders contain classic and Flex templates correspondingly.
+The cloned repository contains `src` and `v2` folders. `src` and `v2` folders contain [Classic and Flex templates](https://cloud.google.com/dataflow/docs/concepts/dataflow-templates) correspondingly. In this codelab you will work with Dataflow Flex template. 
 
-In this codelab you will work with Flex templates. 
-
-Go to the template folder DataflowTemplates/v2/protegrity-data-tokenization
-
-In the target folder you might see the template packages. Let's go through each of them.
+Navigate to `DataflowTemplates/v2/protegrity-data-tokenization` folder that contains the template packages.
 
 ![image_caption](resources/Screenshot-2021-03-23-at-16-39-21.png)
+
+
+Packages structure is:
 * `options` package contains all pipeline parameters and logic around them
-* `templates` package contains main class of presented template. There is pipeline creation and applying all transformations
-* `transforms` package contains all Beam transform that applies to the pipeline
+* `templates` package contains the template main class that creates the pipeline and applies all transformations
+* `transforms` package contains custom Beam transforms that are applied to the pipeline
     * `io` subpackage contains transforms for input/output, e.g. to convert from format to Row and vise versa.
   
-* `utils` package contains utils that used in pipeline for supporting operations, such us schema parsing or csv building
-* `resources` folder contains metadata file, that will be need when you will build pipeline to the template.
+* `utils` package contains utils supporting pipeline operations, such us schema parsing or working wiht CSV
+* `resources` folder contains template metadata file.
 
-As a next step you will go throughout the main class.
+Next is overview of the template main class.
 <!-- ------------------------ -->
-## Main template class
+## Template main class
 Duration: 0:15:00
 
-Let's go to the main template class `ProtegrityDataTokenization` and describe it. This class locates in `v2/protegrity-data-tokenization/src/main/java/com/google/cloud/teleport/v2/templates/ProtegrityDataTokenization.java`
+Navigate to the main template class `ProtegrityDataTokenization` in your editor. This class locates in `v2/protegrity-data-tokenization/src/main/java/com/google/cloud/teleport/v2/templates/ProtegrityDataTokenization.java`
 
-As you now most java programs have main class with `main` method as an entry point for the application. There is very similar structure.
-
-In `ProtegrityDataTokenization` class you may see main method with option parsing and calling run method
+`ProtegrityDataTokenization` class you may see `main` method parses options and calls `run` method
 ```java 
   public static void main(String[] args) {
     ProtegrityDataTokenizationOptions options =
@@ -114,7 +110,9 @@ In `ProtegrityDataTokenization` class you may see main method with option parsin
     run(options, dataflowOptions);
   }
 ```
-And in `run` method presented pipeline implements basic beam pipeline implementation flow. 
+
+
+`run` method implements Apache Beam pipeline flow: 
 1) Pipeline creation:
 ```java 
 Pipeline pipeline = Pipeline.create(options);
@@ -128,16 +126,14 @@ pipeline.apply()
 pipeline.run();
 ```
 
-Let's take a look at two interesting things in this class.
-
-#### Schema
-In the presented pipeline you may see schema reading, it's implementation to read schema in JSON BigQuery compatible format format to build Beam Rows
+#### Data Schema
+Presented pipeline reads input data schema in BigQuery compatible format to build Beam Rows
 ```java 
 schema = new SchemasUtils(options.getDataSchemaGcsPath(), StandardCharsets.UTF_8);
 ```
 
 #### Coder
-As you know in Beam provides coder mechanism to serialisation/deserialization process. 
+Beam provides coder mechanism for serialisation/deserialization process. 
 And for operate with some types you need specify coders by ```CoderRegistry``` or by 
 applying ```.setCoder()``` to the PCollection. And for this case used Beam Schema API to represent 
 data as Rows in PCollection.
@@ -148,18 +144,17 @@ coderRegistry
         RowCoder.of(schema.getBeamSchema()));
 ```
 
-Next step: You will take a look at schema in BigQuery compatible format.
+Next step: data schema in BigQuery compatible format.
 <!-- ------------------------ -->
-## Schema from Json
-Duration: 0:15:00
+## Data schema
+Duration: 0:05:00
 
-Beam schema requires a type mapping mechanism from the input format. 
-The type matching mechanism depends on the input format. There is might be structured formats like 
-BigQuery datasets with metadata of tables where you can automatically take schema. 
-And structured formats like JSON and CSV where you need to specify the schema for converting into 
-Beam Rows. 
+Beam schema requires a type mapping mechanism from the input format to Beam Row. 
+The type matching mechanism depends on the input format. Structured formats data schemas examples:
+* autogenerated, e.g., BigQuery datasets with tables metadata that enables to retrieve schema, autogenerated schema for Avro input formats 
+* user-provided, e.g., structured formats like JSON and CSV where user need to specify the schema for converting into Beam Rows. 
 
-And one of the best approaches for the second case is JSON in BigQuery Schema compatible format.
+One of the best approaches for the user-provided data schema is to use BigQuery Schema compatible JSON format.
 
 ```json
 {
@@ -182,18 +177,16 @@ And one of the best approaches for the second case is JSON in BigQuery Schema co
   ]
 }
 ```
-You need to create json with `fields` collection that includes all input fields as json objects.
+Create JSON with `fields` collection that includes all input fields as JSON objects.
 
-You need to create JSON with a `fields` collection that includes all input fields as JSON objects.
-
-Each object should contains three attributes
-* `name` Name of the field
-* `type` Type of the field, in BigQuery [types](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types?hl=pl). Likely it's very closely with Beam schema Type. All Beam types supports with BigQuery
-* `mode` Might be `REQUIRED` or `NULLABLE`
+Object should contain three attributes:
+* `name` name of the field
+* `type` type of the field, in BigQuery [types](https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types?hl=pl). All Beam types supported by BigQuery
+* `mode` can be `REQUIRED` or `NULLABLE`
 
 #### Schema parsing
 
-To parse schema you need to implement parsing from JSON string using `BigQueryHelpers.fromJsonString()`
+To parse schema implement parsing from JSON string using `BigQueryHelpers.fromJsonString()`
 
 ```java
 void parseJson(String jsonSchema) throws UnsupportedOperationException {
@@ -204,20 +197,19 @@ void parseJson(String jsonSchema) throws UnsupportedOperationException {
 }
 ```
 
-And convert ```TableSchema``` to Beam `Schema` using `org.apache.beam.sdk.io.gcp.bigquery.BigQueryUtils.fromTableSchema`
+And then convert ```TableSchema``` to Beam `Schema` using `org.apache.beam.sdk.io.gcp.bigquery.BigQueryUtils.fromTableSchema`
 
-You may see how it implements in presented pipeline `v2/protegrity-data-tokenization/src/main/java/com/google/cloud/teleport/v2/utils/SchemasUtils.java` class
+You may see how it implemented in presented pipeline `v2/protegrity-data-tokenization/src/main/java/com/google/cloud/teleport/v2/utils/SchemasUtils.java` class
 
 Nex step: IO transform overview
 <!-- ------------------------ -->
 ## GcsIO overview
-Duration: 0:10:00
+Duration: 0:05:00
 
 To transform many input formats to the Beam Row and from Beam Row into destination format, presented
 pipeline implements IO transforms. Let's focus on GcsIO that works with Google Cloud Storage.
 
-In the 
-`/transforms/io/GcsIO.java` you may see `FORMAT` enum, that covers all supported formats.
+In the `/transforms/io/GcsIO.java` find `FORMAT` enum, that lists all supported formats.
 ```java
 public enum FORMAT {
     JSON,
@@ -226,7 +218,7 @@ public enum FORMAT {
 }
 ```
 
-For IO functionality `GcsIO` class provides two methods `read` 
+For IO functionality `GcsIO` class provides methods `read` 
 ```java
 public PCollection<Row> read(Pipeline pipeline, SchemasUtils schema) {
     switch (options.getInputGcsFileFormat()) {
@@ -264,15 +256,15 @@ public POutput write(PCollection<Row> input, Schema schema) {
 ```
 
 For each supported format GcsIO encapsulates transformations from source format to Beam Row and 
-from Beam Row to destination format for writing results. e.g. `writeAvro` or `writeAvro`. 
+from Beam Row to destination format for writing results. e.g. `readAvro` or `writeAvro`. 
 That takes pipeline and Schema as argument.
 
-Next step: You will implement parquet files reading and writing and transformation this into the Beam Row.
+Next step: implement parquet files reading, and writing and transformation into the Beam Row.
 <!-- ------------------------ -->
-## Parquet IO Read
-Duration: 0:15:00
+## Parquet IO read
+Duration: 0:05:00
 
-To implement new parquet source read and write, firstly you need to add new value into `FORMAT` enum 
+To implement new parquet source read and write, first add the new `FORMAT` enum value
 
 ```java
 public enum FORMAT {
@@ -283,24 +275,24 @@ public enum FORMAT {
   }
 ```
 
-Next, you need to create a method to read parquet from the filesystem and convert it into Beam Row.
+Next, create a method to read parquet from the filesystem and convert it into Beam Row.
 
-To read parquet you might use ParquetIO from Beam SDK. You need to apply `ParquetIO.read()` to the pipeline object.
+To read parquet use ParquetIO from Beam SDK. Apply `ParquetIO.read()` to the pipeline object.
 ```java
 PCollection<GenericRecord> parquetRecords =
         pipeline.apply(ParquetIO.read(avroSchema).from(options.getInputGcsFilePattern()));
 ```
 
-`ParquetIO.read()` takes Avro schema as a argument. And you need to convert Beam Schema to the Avro
+`ParquetIO.read()` takes Avro schema as an argument. Also you need to convert Beam Schema to the Avro
 schema using `AvroUtils.toAvroSchema()`
 ```
 org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(beamSchema);
 ```
 
-Applying `ParquetIO.read()` to the pipeline produce `PCollection` of `GenericRecord` and you should 
-convert it into the Beam Row. Easiest way to do that is applying `MapElements.into` to the 
-`PCollection<GenericRecord>`. One thing that you need to provide to `via` method - transform 
-function from `GenericRecord` into `Row`. And luckily it also contains in `AvroUtils`.
+Applying `ParquetIO.read()` to the pipeline produces `PCollection` of `GenericRecord` and it should 
+be converted into the Beam Row. A simple way to do that is by applying `MapElements.into` to the 
+`PCollection<GenericRecord>`. Parameter that you need to provide to `via` method is transform 
+function from `GenericRecord` into `Row`. And luckily it is also available in `AvroUtils`.
 
 ```java
 parquetRecords
@@ -308,7 +300,7 @@ parquetRecords
         .via(AvroUtils.getGenericRecordToRowFunction(beamSchema)))
 ```
 
-The last thing that you need to do - specify the coder for the new PCollection. 
+Finally, specify the coder for the new PCollection. 
 A fully implemented method: 
 
 
@@ -326,11 +318,11 @@ private PCollection<Row> readParquet(Pipeline pipeline, Schema beamSchema) {
  }
 ```
 
-Next step: you need to implement write method for writing Beam Row to the parquet format.
+Next step: implement write method for writing Beam Row to the parquet format.
 <!-- ------------------------ -->
 
-## Parquet IO Write
-Duration: 0:15:00
+## Parquet IO write
+Duration: 0:05:00
 
 Let's implement write method for parquet format.
 
@@ -339,8 +331,8 @@ You need to create a method to transform Beam Row to parquet and write files to 
 To write parquet you might use `FileIO` with `ParquetIO.sink()` from Beam SDK. 
 You need to apply `FileIO.<GenericRecord>write()` to the `PCollection<GenericRecord>`.
 
-Firstly you need to convert `PCollection<Row>` into `PCollection<GenericRecord>`. 
-It's very similar with your implementation of conversion from GenericRecord to Row. For backward
+First step is to convert `PCollection<Row>` into `PCollection<GenericRecord>`. 
+It's very similar to the implementation of conversion from GenericRecord to Row. For backward
 conversion you might use `MapElements` with `AvroUtils.getRowToGenericRecordFunction()`
 ```java
 PCollection<GenericRecord> genericRecords = outputCollection
@@ -349,32 +341,29 @@ PCollection<GenericRecord> genericRecords = outputCollection
             .via(AvroUtils.getRowToGenericRecordFunction(avroSchema)))
 ```
 
-As you may see, `getRowToGenericRecordFunction` takes Avro Schema. You should convert Beam Schema to
+As you notice, `getRowToGenericRecordFunction` takes Avro Schema. Beam Schema can be converted to
 the Avro schema using `AvroUtils`
 
 ```
 org.apache.avro.Schema avroSchema = AvroUtils.toAvroSchema(beamSchema);
 ```
 
-So, now, you have prepared `PCollection<GenericRecord>` and you may apply `FileIO.write()` to it.
-It requires Generic type specifying.
+Now that you have prepared `PCollection<GenericRecord>` next step is to apply `FileIO.write()` that requires Generic type. Pass `avroSchema` as the argument to `ParquetIO.sink()`. Destination path, you may take from the pipeline options.
 
 ```java
 genericRecords.apply(FileIO.<GenericRecord>write()
     .via(ParquetIO.sink(avroSchema))
     .to(options.getOutputGcsDirectory()).withSuffix(".parquet")
 ```
-As the argument to `ParquetIO.sink()` you should pass `avroSchema`, that you converted before from 
-Beam Schema. Destination path, you may take from the pipeline options.
 
-Next step: You should check your tokenization service
+Next step: tokenization service
 
 <!-- ------------------------ -->
 ## Tokenization service
 Duration: 0:05:00
 
-Presented templates provides data tokenization using external REST service 
-and configured to communicate with tokenization service in following request format: 
+Presented templates provides data tokenization using an external REST service 
+and configured to communicate with the tokenization service in following request format: 
 ```json
 {
   ...
@@ -387,14 +376,14 @@ and configured to communicate with tokenization service in following request for
   ...
 }
 ```
-If your tokenization service have similar requirements for request structure, just skip this codelab 
+If your tokenization service have similar requirements for request structure, just skip next codelab 
 section.
 
 #### If you don't have tokenization service
-To skip the tokenization step for testing purposes you need to replace the tokenization call in 
+To skip the tokenization step for testing purposes replace the tokenization call in 
 `ProtegrityDataProtectors`
 
-1. Go to `ProtegrityDataProtectors.java`
+1. Naviagate to `ProtegrityDataProtectors.java`
 2. Find processBufferedRows method
 3. Replace
 ```java
@@ -425,13 +414,13 @@ private void processBufferedRows(Iterable<Row> rows, WindowedContext context) {
     
 }
 ```
-Next step: You will take a look on metadata file and extend it for parquet format.
+Next step: metadata file.
 
 <!-- ------------------------ -->
 ## Template metadata
 Duration: 0:05:00
 
-For the building Dataflow Template, you should create JSON file with Template metadata. 
+Dataflow templates can provide a JSON metadata file with the template description and supported parameters. 
 
 #### Metadata parameters
 | Parameter Key	 | Required | Description of the value |
@@ -475,18 +464,18 @@ For the building Dataflow Template, you should create JSON file with Template me
 }
 ```
 
-#### Add PARQUET to supported formats in Metadata file
+#### Add PARQUET to supported formats in the metadata file
 
-In the metadata file, located: 
+Navigate to and open in editor template metadata file: 
 
 ```
 v2/protegrity-data-tokenization/src/main/resources/protegrity_data_tokenization_metadata.json
 ``` 
-You may see following parameters:
+Find following parameters:
 * inputGcsFileFormat
 * outputGcsFileFormat
 
-For these parameters you should add addition option in regex section to validate PARQUET format correctly
+Add `PARQUET` to the regex section to validate `PARQUET` format correctly
 
 ```json
 "regexes": [
@@ -494,18 +483,18 @@ For these parameters you should add addition option in regex section to validate
 ]
 ```
 
-Next step: you will build pipeline into the template.
+Next step: build Dataflow template.
 
 <!-- ------------------------ -->
-## Build the Template
+## Build Dataflow Flex template
 Duration: 0:05:00
 
-Dataflow Flex Templates package the pipeline as a Docker image and stage these images on your
+Dataflow Flex templates package the pipeline as a Docker image and stages the docker image on your
 project's [Container Registry](https://cloud.google.com/container-registry).
 
 #### Assembling the Uber-JAR
 
-The Dataflow Flex Templates require your Java project to be built into an Uber JAR file.
+The Dataflow Flex templates require your Java project to be built into an Uber JAR file.
 
 Navigate to the v2 folder:
 
@@ -525,7 +514,7 @@ package *and* all its dependencies.
 The result of the `package` task execution is a `protegrity-data-tokenization-1.0-SNAPSHOT.jar`
 file that is generated under the `target` folder protegrity-data-tokenization directory.
 
-#### Creating the Dataflow Flex Template
+#### Creating the Dataflow Flex template
 
 Navigate to the template folder:
 
@@ -533,7 +522,7 @@ Navigate to the template folder:
 cd /path/to/DataflowTemplates/v2/protegrity-data-tokenization
 ```
 
-Build command to build the Dataflow Flex Template:
+Build command to build the Dataflow Flex template:
 
 ```
 gcloud dataflow flex-template build ${TEMPLATE_PATH} \
@@ -552,16 +541,14 @@ gcloud dataflow flex-template build ${TEMPLATE_PATH} \
 * `jar` path to **UBER JAR** 
 * `FLEX_TEMPLATE_JAVA_MAIN_CLASS` path to the main class. In this case: `com.google.cloud.teleport.v2.templates.ProtegrityDataTokenization`
 
-Next step: You will run Dataflow Template on GCS!
+Next step: run Dataflow template on Google Cloud
 <!-- ------------------------ -->
-## Run the Template
+## Run Dataflow template on Goolge Cloud
 Duration: 0:10:00
 
-To deploy the pipeline, refer to the template file and pass the
-[parameters](https://cloud.google.com/dataflow/docs/guides/specifying-exec-params#setting-other-cloud-dataflow-pipeline-options)
-required by the pipeline.
+To deploy the pipeline, refer to the template metadata file and pass the [parameters](https://cloud.google.com/dataflow/docs/guides/specifying-exec-params#setting-other-cloud-dataflow-pipeline-options) required by the pipeline.
 
-The template requires banch of the parameters, in case of testing parquet format as an input source
+The template requires set of the parameters, and to test parquet format support as an input source
 you need to specify few of them.
 
 - **dataSchemaGcsPath**: Path to data schema file located on GCS. BigQuery compatible JSON format data schema required 
@@ -585,6 +572,7 @@ gcloud dataflow flex-template run "protegrity-data-tokenization-`date +%Y%m%d-%H
     --parameters <parameter>="<value>" \
     --region "${REGION}"
 ```
+
 3. With a REST API request
 
 ```bash
@@ -611,7 +599,22 @@ time curl -X POST -H "Content-Type: application/json" \
     "${TEMPLATES_LAUNCH_API}"
 ```
 
-## Finish
+## Congratulations!
 Duration: 0:05:00
 
-pass
+In this codelab you added a new input source to an Apache Beam pipeline using Beam Schema API, createed Dataflow template from the Apache Beam pipeline and ran the Dataflow template in Google Cloud. This colab demonstrated how to work with Beam Schema API and how Beam Schema API helps to support multiple data formats in your pipeline.
+
+#### What you've built
+
+* New transformation for .parquet format into the Beam Row abstraction
+* New transformation from Beam Row into .parquet format
+* Dataflow Flex template
+
+#### What you'll learned
+* How to use Apache Beam Schema API
+* How to work with Apache Beam ParquetIO
+* How to build Dataflow Flex template from pipeline
+* How to run Dataflow template in Google Cloud
+
+#### Learn More
+* Dataflow documentation: [https://cloud.google.com/dataflow/docs/](https://cloud.google.com/dataflow/docs/)
