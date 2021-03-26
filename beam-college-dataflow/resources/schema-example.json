@@ -1,0 +1,19 @@
+{
+  "fields": [
+    {
+      "name": "ssn",
+      "type": "STRING",
+      "mode": "REQUIRED"
+    },
+    {
+      "name": "firstname",
+      "type": "STRING",
+      "mode": "REQUIRED"
+    },
+    {
+      "name": "lastname",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    }
+  ]
+}
