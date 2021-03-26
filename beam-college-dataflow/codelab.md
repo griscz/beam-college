@@ -23,12 +23,14 @@ In this codelab you will add a new input source to an Apache Beam pipeline using
 * Dataflow Flex template
 
 #### What you'll learn
+
 * How to use Apache Beam Schema API
 * How to work with Apache Beam ParquetIO
 * How to build Dataflow Flex template from pipeline
 * How to run Dataflow template in Google Cloud
 
 #### What you'll need
+
 * A computer with a modern web browser installed (Chrome is recommended)
 * Your favourite code editor or IDE
 * A Google Cloud project
@@ -389,6 +391,7 @@ To skip the tokenization step for testing purposes replace the tokenization call
 1. Naviagate to `ProtegrityDataProtectors.java`
 2. Find processBufferedRows method
 3. Replace
+
 ```java
 private void processBufferedRows(Iterable<Row> rows, WindowedContext context) {
 
@@ -408,7 +411,9 @@ private void processBufferedRows(Iterable<Row> rows, WindowedContext context) {
     }
 }
 ```
+
 with
+
 ```java
 private void processBufferedRows(Iterable<Row> rows, WindowedContext context) {
   for (Row outputRow : rows) {
@@ -417,6 +422,7 @@ private void processBufferedRows(Iterable<Row> rows, WindowedContext context) {
     
 }
 ```
+
 Next step: metadata file.
 
 <!-- ------------------------ -->
@@ -426,6 +432,7 @@ Duration: 0:05:00
 Dataflow templates can provide a JSON metadata file with the template description and supported parameters. 
 
 #### Metadata parameters
+
 | Parameter Key	 | Required | Description of the value |
 | --- | ----------- | --- |
 | name | Yes | The name of your template. |
@@ -433,6 +440,7 @@ Dataflow templates can provide a JSON metadata file with the template descriptio
 | parameters | No. Defaults to an empty array. | An array of additional parameters that will be used by the template. |
 
 #### Template parameters description in metadata file
+
 | Parameter Key	 | Required | Description of the value |
 | --- | ----------- | --- |
 | name | Yes | 	The name of the parameter used in your template. |
@@ -442,6 +450,7 @@ Dataflow templates can provide a JSON metadata file with the template descriptio
 | regexes | No. Defaults to an empty array. | An array of POSIX-egrep regular expressions in string form that will be used to validate the value of the parameter. For example: `["^[a-zA-Z][a-zA-Z0-9]+"]` is a single regular expression that validates that the value starts with a letter and then has one or more characters. |
 
 #### Example metadata file
+
 ```json
 {
   "description": "An example pipeline that counts words in the input file.",
@@ -473,7 +482,8 @@ Navigate to and open in editor template metadata file:
 
 ```
 v2/protegrity-data-tokenization/src/main/resources/protegrity_data_tokenization_metadata.json
-``` 
+```
+
 Find following parameters:
 * inputGcsFileFormat
 * outputGcsFileFormat
@@ -575,6 +585,7 @@ gcloud dataflow flex-template run "protegrity-data-tokenization-`date +%Y%m%d-%H
     --parameters <parameter>="<value>" \
     --region "${REGION}"
 ```
+
 3. With a REST API request
 
 ```bash
@@ -604,23 +615,18 @@ time curl -X POST -H "Content-Type: application/json" \
 You can find more information in Google [documentation](https://cloud.google.com/dataflow/docs/guides/templates/running-templates) for Dataflow Template. 
 
 ## Congratulations!
-Duration: 0:05:00
+Duration: 0:01:00
 
-In this codelab you added a new input source and output sink for parquet files to an Apache Beam pipeline using Beam Schema API, created a Dataflow template from the Apache Beam pipeline, and ran the Dataflow.
+Now you can use this template to read parquet files, tokenize the information from them, and then write the tokenized
+data into other parquet files. Moreover, you've learned how to easily combine any formats, input sources and output sinks
+using Beam Row concept.
 
-#### What you've built
+#### What you've learned during this codelab:
 
-* New transformation for .parquet format into the Beam Row
-* New transformation from Beam Row into .parquet format
-* Dataflow Flex template
-
-#### What you'll learned
-* How to organize Dataflow template code
-* How to use Apache Beam Schema API
-* How to work with Apache Beam ParquetIO
-* How to work with AvroUtils
-* How to build Dataflow Flex template
-* How to run Dataflow template in Google Cloud
+* Dataflow Flex template structure
+* How to use Beam Schema API and Beam Row in particular
+* What the steps are to support many sources and formats
+* How to build templates and run them in Google Dataflow
 
 #### Learn More
 * Dataflow documentation: [https://cloud.google.com/dataflow/docs/](https://cloud.google.com/dataflow/docs/)
