@@ -1,9 +1,11 @@
-## Beam College: Assets for day 2
+## Beam College Day 2 Assets
 
 This directory contains the assets for day 2 of Beam College.
 
 It currently has:
- * Colab file for "Joins & PCollection splitting" lab
- * Colab file for "Advanced grouping and aggregations" lab
-
-
+ * Slides for "DoFn lifecycle and user code requirements"
+ * Slides for "Branching and merging PCollections"
+ * Notebook for "Joins & PCollection splitting" lab
+ * Slides for "Advanced grouping and aggregations"
+ * Notebook for "Advanced grouping and aggregations" lab
+ 

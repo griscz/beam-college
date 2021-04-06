@@ -1,4 +1,4 @@
-## Beam College: Assets for day 1
+## Beam College Day 1 Assets
 
 This directory contains the assets for day 1 of Beam College.
 
