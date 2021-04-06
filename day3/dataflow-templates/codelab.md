@@ -565,10 +565,10 @@ The template requires set of the parameters, and to test parquet format support 
 you need to specify few of them.
 
 - **dataSchemaGcsPath**: Path to data schema file located on GCS. BigQuery compatible JSON format data schema required
-  - [This sample schema](https://github.com/akvelon/codelabs/blob/main/beam-college-dataflow/resources/schema-example.json)
+  - [This sample schema](https://griscz/beam-college/blob/main/dataflow-templates/resources/schema-example.json)
     can be used for testing - just copy it to your GCS bucket
 - **inputGcsFilePattern**: GCS file pattern for files in the source bucket
-  - [This data sample](https://github.com/akvelon/codelabs/blob/main/beam-college-dataflow/resources/data-example.json)
+  - [This data sample](https://github.com/griscz/beam-college/blob/main/dataflow-templates/resources/data-example.parquet)
   can be used for testing - just copy it to your GCS bucket
 - **inputGcsFileFormat**: File format of the input files. Supported formats: JSON, CSV, Avro and **PARQUET**
 - **dsgUri**: URI for the DSG API calls, if you don't have this one. Just skip it.
