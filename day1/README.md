@@ -10,5 +10,5 @@ It currently has:
 
 If you open any of the notebooks from GitHub, you should be able to see at the top a link to launch the notebook in Google Colab. This will launch the notebook on a cloud environment so that you do not need to install anything. 
 
-If you have trouble launching the Colab from GitHub, you can open it directly from here:
+If you have trouble launching the Colab from GitHub, you can access a shared copy here:
 https://sg1.run/bclab1
